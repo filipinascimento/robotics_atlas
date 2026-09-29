@@ -20,7 +20,7 @@ test("linked community, year, institution, and geography selections", async ({
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("./");
   await ready(page);
-  await expect(page.locator(".summary-stats")).toContainText("34.6K");
+  await expect(page.locator(".summary-stats")).toContainText("34.5K");
   await expect(
     page.getByRole("combobox", { name: "Minimum shared papers" }),
   ).toHaveValue("3");
@@ -28,7 +28,7 @@ test("linked community, year, institution, and geography selections", async ({
     page.getByRole("combobox", { name: "Edge display limit" }),
   ).toHaveValue("5000");
   await expect(page.locator(".edge-count")).toHaveText(
-    "5,000 / 12,281 edges shown",
+    "5,000 / 12,241 edges shown",
   );
   const original = await page.locator(".edge-count").innerText();
   const positions = await page
@@ -48,7 +48,7 @@ test("linked community, year, institution, and geography selections", async ({
   const timeline = page.locator(".timeline-chart svg");
   const range = (await timeline.boundingBox())!;
   await page.mouse.move(
-    range.x + 8 + ((range.width - 18) * (2013 - 1988)) / (2022 - 1988),
+    range.x + 8 + ((range.width - 18) * (2013 - 1988)) / (2021 - 1988),
     range.y + 20,
   );
   await page.mouse.down();
@@ -148,7 +148,7 @@ for (const renderer of ["canvas", "helios"])
       .selectOption("0");
     await ready(page);
     await expect(page.locator(".edge-count")).toHaveText(
-      "122,655 / 122,655 edges shown",
+      "122,304 / 122,304 edges shown",
       { timeout: 15000 },
     );
     await expect(page.locator(".renderer-status")).toContainText(
@@ -209,7 +209,7 @@ test("humanoid switching, timeline brush and reset, and data notes", async ({
   );
   await expect(page.locator(".timeline-chart svg")).toHaveAttribute(
     "data-end-year",
-    "2022",
+    "2021",
   );
   await page
     .getByRole("button", { name: "About data and methodology" })

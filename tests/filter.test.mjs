@@ -1,7 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { filterAtlas, communityAffinities } from "../src/data.ts";
+import {
+  filterAtlas,
+  communityAffinities,
+  completeYearsOnly,
+} from "../src/data.ts";
 const node = (id, counts) => ({
   id,
   label: `University ${id}`,
@@ -332,3 +336,71 @@ test("co-located markers stay compact until close zoom, then separate smoothly",
   assert.equal(offsetSpacing(512), 12);
   assert.equal(offsetSpacing(1024), 12);
 });
+
+for (const dataset of ["robotics", "humanoid"]) {
+  test(`${dataset}: incomplete final year cannot reach charts or filtered totals`, () => {
+    const source = JSON.parse(
+      readFileSync(
+        new URL(`../public/data/atlas_${dataset}.json`, import.meta.url),
+      ),
+    );
+    const complete = completeYearsOnly(source);
+    assert.equal(complete.excludedYear, 2022);
+    assert.equal(complete.years.at(-1), 2021);
+    assert.equal(source.years.at(-1), 2022, "source data stays intact");
+    assert.equal(
+      completeYearsOnly(complete),
+      complete,
+      "loading prepared data must not discard another year",
+    );
+    for (const [index, institution] of complete.institutions.entries()) {
+      assert.equal(institution.id, index, "institution indexes stay stable");
+      assert.ok(institution.counts.every(([year]) => year < 2022));
+    }
+    for (const series of [
+      ...complete.collaborations,
+      ...complete.citationLinks,
+    ])
+      assert.ok(series.counts.every(([year]) => year < 2022));
+    for (const community of complete.communities) {
+      assert.ok(community.timeline.every(({ year }) => year < 2022));
+      assert.ok(community.counts.every(([year]) => year < 2022));
+      assert.equal(
+        community.size,
+        community.counts.reduce((sum, [, count]) => sum + count, 0),
+      );
+      for (const node of community.secondLevel.nodes)
+        assert.ok(node.timeline.every(({ year }) => year < 2022));
+    }
+    const expected = filterAtlas(source, {
+      ...defaults,
+      start: 1988,
+      end: 2021,
+    });
+    // Even a stale filter asking for the excluded year cannot show its data.
+    const actual = filterAtlas(complete, {
+      ...defaults,
+      start: 1988,
+      end: 2022,
+    });
+    const { ms: expectedMs, ...expectedValues } = expected;
+    const { ms: actualMs, ...actualValues } = actual;
+    assert.ok(expectedMs >= 0 && actualMs >= 0);
+    assert.deepEqual(actualValues, expectedValues);
+    const originalTotal = filterAtlas(source, {
+      ...defaults,
+      start: 1988,
+      end: 2022,
+    }).papers;
+    assert.equal(
+      originalTotal - actual.papers,
+      dataset === "robotics" ? 456 : 17,
+    );
+    if (dataset === "robotics")
+      assert.equal(complete.communities[0].secondLevel.nodes[0].size, 3399);
+    assert.equal(
+      completeYearsOnly({ ...source, years: [1988, 2021, 2025] }).excludedYear,
+      2025,
+    );
+  });
+}

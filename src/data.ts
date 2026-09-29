@@ -37,6 +37,7 @@ export type Institution = {
 };
 export type Atlas = {
   years: number[];
+  excludedYear?: number;
   communities: Community[];
   links: {
     source: string;
@@ -107,6 +108,67 @@ export const compact = (n: number) =>
   }).format(n);
 export const sumYears = (counts: YearCount[], start: number, end: number) =>
   counts.reduce((sum, [y, n]) => sum + (y >= start && y <= end ? n : 0), 0);
+
+/** Keep the source files intact, but never expose the incomplete final year to
+ * charts or filtering. Normalize once in the worker for every dataset/load path.
+ * Community membership and the original fixed citation topology are retained.
+ */
+export function completeYearsOnly(data: Atlas): Atlas {
+  if (data.excludedYear !== undefined) return data;
+  const excludedYear = Math.max(...data.years);
+  const years = data.years.filter((year) => year < excludedYear);
+  if (!years.length) throw new Error("No complete publication years available");
+  const countsBefore = <T extends number[]>(counts: T[]) =>
+    counts.filter(([year]) => year < excludedYear);
+  return {
+    ...data,
+    years,
+    excludedYear,
+    totalByYear: countsBefore(data.totalByYear),
+    institutions: data.institutions.map((node) => ({
+      ...node,
+      counts: countsBefore(node.counts),
+    })),
+    collaborations: data.collaborations.map((edge) => ({
+      ...edge,
+      counts: countsBefore(edge.counts),
+    })),
+    citationLinks: data.citationLinks.map((edge) => ({
+      ...edge,
+      counts: countsBefore(edge.counts),
+    })),
+    communities: data.communities.map((community) => {
+      const counts = countsBefore(community.counts);
+      const finalCount =
+        community.counts.find(([year]) => year === excludedYear)?.[1] || 0;
+      return {
+        ...community,
+        counts,
+        size: counts.reduce((total, [, count]) => total + count, 0),
+        timeline: community.timeline.filter(({ year }) => year < excludedYear),
+        secondLevel: {
+          ...community.secondLevel,
+          nodes: community.secondLevel.nodes.map((node) => ({
+            ...node,
+            // The original subcluster shares use this parent year's count.
+            // Four decimal places recover integer counts for these datasets.
+            size: Math.max(
+              0,
+              node.size -
+                Math.round(
+                  (finalCount *
+                    (node.timeline.find(({ year }) => year === excludedYear)
+                      ?.percent || 0)) /
+                    100,
+                ),
+            ),
+            timeline: node.timeline.filter(({ year }) => year < excludedYear),
+          })),
+        },
+      };
+    }),
+  };
+}
 
 export function filterAtlas(data: Atlas, f: Filters): Result {
   const time = performance.now();

@@ -130,7 +130,7 @@ function App() {
   const [mapViewport, setMapViewport] = useState<MapViewport>();
   const [filters, setFilters] = useState<Filters>({
     start: TIMELINE_START,
-    end: 2022,
+    end: TIMELINE_START,
     community: null,
     query: "",
     minPapers: 3,
@@ -1101,14 +1101,17 @@ function App() {
               </dd>
               <dt>Year filtering</dt>
               <dd>
-                Collaboration dates use publication year. Citation connections
-                use the citing paper’s year and are displayed without direction.
-                The ten main communities are fixed across time. Subcommunity
-                summaries retain their original, all-time scope. Evolution shows
-                corpus-level citation data: community shares use the corpus as
-                their denominator, and subcluster shares use the parent
-                community. Institution and search filters do not change these
-                historical shares.
+                The final source year ({data.excludedYear}) is incomplete and
+                excluded from displayed timelines and publication counts. The
+                displayed period ends in {data.years.at(-1)}. Collaboration
+                dates use publication year. Citation connections use the citing
+                paper’s year and are displayed without direction. The ten main
+                communities are fixed across time. Subcommunity summaries retain
+                their original, all-time scope. Evolution shows corpus-level
+                citation data: community shares use the corpus as their
+                denominator, and subcluster shares use the parent community.
+                Institution and search filters do not change these historical
+                shares.
               </dd>
               <dt>Community relationships</dt>
               <dd>

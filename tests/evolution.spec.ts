@@ -32,7 +32,7 @@ test("Evolution links community, subcluster and year selections across views", a
   const chart = page.locator(".evolution-parent .evolution-chart");
   const bounds = (await chart.boundingBox())!;
   const x = (year: number) =>
-    bounds.x + 44 + ((bounds.width - 64) * (year - 1988)) / (2022 - 1988);
+    bounds.x + 44 + ((bounds.width - 64) * (year - 1988)) / (2021 - 1988);
   await page.mouse.move(x(2000), bounds.y + 100);
   await page.mouse.down();
   await page.mouse.move(x(2010), bounds.y + 100, { steps: 8 });
@@ -59,7 +59,7 @@ test("Evolution links community, subcluster and year selections across views", a
   await expect(chart).toHaveAttribute("data-end-year", "2010");
   await chart.dblclick({ position: { x: 100, y: 100 } });
   await expect(chart).toHaveAttribute("data-start-year", "1988");
-  await expect(chart).toHaveAttribute("data-end-year", "2022");
+  await expect(chart).toHaveAttribute("data-end-year", "2021");
   await page
     .getByRole("combobox", { name: "Evolution community" })
     .selectOption("1");

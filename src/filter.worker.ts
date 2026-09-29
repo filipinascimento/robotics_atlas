@@ -1,4 +1,4 @@
-import { filterAtlas } from "./data";
+import { completeYearsOnly, filterAtlas } from "./data";
 import type { Atlas, Filters } from "./data";
 let atlas: Atlas;
 self.onmessage = async (
@@ -27,7 +27,7 @@ self.onmessage = async (
       } else response = await fetch(url);
       if (!response.ok)
         throw new Error(`Dataset request failed (${response.status})`);
-      atlas = await response.json();
+      atlas = completeYearsOnly(await response.json());
       self.postMessage({
         type: "ready",
         data: { ...atlas, collaborations: [] },
