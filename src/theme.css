@@ -1,0 +1,73 @@
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --page-background: #f5f8fb;
+  --surface: #ffffff;
+  --surface-raised: #e8eff4;
+  --surface-floating: #fffffff2;
+  --surface-wash: #1744620a;
+  --text-strong: #193443;
+  --text-muted: #536b7a;
+  --border-subtle: #183b5314;
+  --border-strong: #b9cbd7;
+  --accent-color: #087e68;
+  --accent-soft: #e0f1ea;
+  --warning-color: #986010;
+  --secondary-accent: #8054af;
+  --shadow: #17344a20;
+  --scrim: #18324866;
+}
+.theme-control {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+}
+.theme-toggle {
+  width: 29px;
+  height: 29px;
+  padding: 5px;
+  color: var(--text-muted, #91a9b7);
+}
+.theme-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  width: 150px;
+  padding: 5px;
+  background: var(--surface, #14212b);
+  border: 1px solid var(--border-strong, #314552);
+  border-radius: 9px;
+  box-shadow: 0 8px 28px var(--shadow, #0005);
+  z-index: 30;
+}
+.theme-menu button {
+  width: 100%;
+  padding: 8px;
+  justify-content: flex-start;
+  color: var(--text-strong, #dce5ed);
+  font-size: 13px;
+}
+.theme-menu button[aria-checked="true"] {
+  background: var(--accent-soft, #19392f);
+  color: var(--accent-color, #70d6bc);
+}
+.theme-check {
+  margin-left: auto;
+}
+:root[data-theme="light"] .map-label {
+  text-shadow:
+    0 1px 2px #fff,
+    0 -1px 2px #fff,
+    1px 0 2px #fff,
+    -1px 0 2px #fff;
+}
+@media (max-width: 700px) {
+  .atlas-app .app-header .view-tabs {
+    padding-right: 64px;
+  }
+  .theme-menu {
+    top: calc(100% + 5px);
+  }
+}
