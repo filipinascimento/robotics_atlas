@@ -13,7 +13,6 @@ type Positioned = Subnode & d3.SimulationNodeDatum & { radius: number };
 function ShareChart({
   values,
   end,
-  max,
   color,
   filters,
   hover,
@@ -24,7 +23,6 @@ function ShareChart({
 }: {
   values: Point[];
   end: number;
-  max: number;
   color: string;
   filters: Filters;
   hover: number | null;
@@ -48,11 +46,15 @@ function ShareChart({
     right = width - 20,
     bottom = height - 27;
   const x = d3.scaleLinear().domain([TIMELINE_START, end]).range([left, right]);
-  const y = d3
-    .scaleLinear()
-    .domain([0, max || 1])
-    .nice()
-    .range([bottom, 16]);
+  const peak =
+    d3.max(
+      values.filter(({ year }) => year >= TIMELINE_START && year <= end),
+      ({ percent }) => percent,
+    ) || 1;
+  const y = d3.scaleLinear().domain([0, peak]).nice(3).range([bottom, 16]);
+  const ceiling = y.domain()[1];
+  const yTicks = [0, ceiling / 2, ceiling];
+  const percentLabel = (value: number) => `${d3.format("~g")(value)}%`;
   const points = d3.range(TIMELINE_START, end + 1).map((year) => ({
     year,
     percent: values.find((v) => v.year === year)?.percent ?? 0,
@@ -89,7 +91,7 @@ function ShareChart({
       style={{ height }}
       role="img"
       aria-label={label}
-      aria-description="Drag to filter years; double-click restores all years."
+      aria-description={`Annual share: 0–${percentLabel(ceiling)}. Drag to filter years; double-click restores all years.`}
       data-start-year={filters.start}
       data-end-year={filters.end}
       onDoubleClick={() => onYears(TIMELINE_START, end)}
@@ -116,7 +118,7 @@ function ShareChart({
       }}
       onPointerLeave={() => onHover(null)}
     >
-      {y.ticks(3).map((t) => (
+      {yTicks.map((t) => (
         <g key={t}>
           <line
             x1={left}
@@ -126,8 +128,14 @@ function ShareChart({
             stroke={paint.grid}
             strokeDasharray="3 5"
           />
-          <text x={left - 7} y={y(t) + 4} textAnchor="end" fill={paint.muted}>
-            {t}%
+          <text
+            className="evolution-y-tick"
+            x={left - 7}
+            y={y(t) + 4}
+            textAnchor="end"
+            fill={paint.muted}
+          >
+            {percentLabel(t)}
           </text>
         </g>
       ))}
@@ -369,17 +377,6 @@ export function Evolution({
   // Ignore a previous community's local selection without altering the shared filters.
   const active = nodes.some((n) => n.id === selected) ? selected : null;
   const end = data.years.at(-1)!;
-  const maxOf = (values: Point[]) =>
-    Math.max(
-      1,
-      ...values.filter((v) => v.year >= TIMELINE_START).map((v) => v.percent),
-    );
-  const commonMax = Math.max(
-    1,
-    ...(community
-      ? nodes.map((n) => maxOf(n.timeline))
-      : data.communities.map((c) => maxOf(c.timeline))),
-  );
   const colors = nodes.map((_, i) => {
     const c = d3.hcl(paint.color(filters.community!));
     c.h += (i - 2) * 9;
@@ -435,7 +432,6 @@ export function Evolution({
                 <ShareChart
                   {...chartProps}
                   values={community.timeline}
-                  max={maxOf(community.timeline)}
                   color={paint.color(filters.community!)}
                   label={`${community.label} annual share of corpus papers`}
                   height={110}
@@ -471,7 +467,6 @@ export function Evolution({
                     <ShareChart
                       {...chartProps}
                       values={node.timeline}
-                      max={commonMax}
                       color={colors[i]}
                       label={`${node.label} annual share of community papers`}
                     />
@@ -509,7 +504,6 @@ export function Evolution({
               <ShareChart
                 {...chartProps}
                 values={c.timeline}
-                max={commonMax}
                 color={paint.color(i)}
                 label={`${c.label} annual share of corpus papers`}
               />
