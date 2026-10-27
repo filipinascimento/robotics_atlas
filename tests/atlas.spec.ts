@@ -169,7 +169,7 @@ for (const renderer of ["canvas", "helios"])
     await ready(page);
     expect(errors).toEqual([]);
   });
-test("humanoid switching, timeline brush and reset, and data notes", async ({
+test("humanoid switching, timeline brush and reset, and atlas guide", async ({
   page,
 }) => {
   const errors: string[] = [];
@@ -212,9 +212,11 @@ test("humanoid switching, timeline brush and reset, and data notes", async ({
     "2021",
   );
   await page
-    .getByRole("button", { name: "About data and methodology" })
+    .getByRole("button", { name: "About Robotics Atlas and how to use it" })
     .click();
-  await expect(page.getByRole("dialog")).toContainText("7,311 of 7,432");
+  await expect(page.getByRole("dialog")).toContainText(
+    "7,406 papers · 2,424 institutions · 10 featured research areas. Explore 1988–2021.",
+  );
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   expect(errors).toEqual([]);

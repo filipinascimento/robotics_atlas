@@ -303,6 +303,23 @@ function App() {
     };
   }, [result, filters.institution]);
   const shareTotal = institutionShares?.reduce((a, b) => a + b, 0) || 0;
+  const overview = useMemo(() => {
+    if (!data) return { papers: 0, institutions: 0 };
+    const end = data.years.at(-1)!;
+    return {
+      papers: data.totalByYear.reduce(
+        (total, [year, count]) =>
+          total + (year >= TIMELINE_START && year <= end ? count : 0),
+        0,
+      ),
+      institutions: data.institutions.filter((institution) =>
+        institution.counts.some(
+          ([year, , count]) =>
+            year >= TIMELINE_START && year <= end && count > 0,
+        ),
+      ).length,
+    };
+  }, [data]);
   const reset = () => {
     setFilters({
       start: TIMELINE_START,
@@ -380,7 +397,7 @@ function App() {
         </label>
         <button
           className="icon-button about-button"
-          aria-label="About data and methodology"
+          aria-label="About Robotics Atlas and how to use it"
           onClick={() => setShowInfo(true)}
         >
           <Icon name="info" />
@@ -1075,83 +1092,68 @@ function App() {
             >
               <Icon name="close" />
             </button>
-            <span className="eyebrow">ROBOTICS ATLAS / DATA NOTES</span>
-            <h2 id="about-title">One field. Three perspectives.</h2>
+            <span className="eyebrow">ROBOTICS ATLAS / EXPLORE</span>
+            <h2 id="about-title">A world of robotics research.</h2>
             <p>
-              Communities come from the citation network. Institution links
-              represent coauthored papers. They are joined through Web of
-              Science paper IDs, using title and publication year to recover the
-              IDs.
+              Explore the ideas, institutions, and collaborations shaping
+              robotics, with publications from Web of Science (WoS). Choose All
+              robotics for the wider field or Humanoid to focus on humanoid
+              robots.
             </p>
             <dl>
-              <dt>Citation coverage</dt>
+              <dt>
+                {dataset === "robotics" ? "All robotics" : "Humanoid"} at a glance
+              </dt>
               <dd>
-                {number(data.provenance.matchedCitationPapers)} of{" "}
-                {number(data.provenance.citationPapers)} papers matched to
-                metadata.
+                {number(overview.papers)} papers ·{" "}
+                {number(overview.institutions)} institutions ·{" "}
+                {data.communities.length} featured research areas. Explore{" "}
+                {TIMELINE_START}–{data.years.at(-1)}.
               </dd>
-              <dt>Institutions and edges</dt>
+              <dt>Communities</dt>
               <dd>
-                Counts use distinct papers per institution or institution pair
-                in the selected years and community. Institutions can belong to
-                several communities. Node colors use the strongest named
-                community; gray nodes have no papers in the ten displayed areas.
-                Composition bars retain all research, including other
-                communities.
-              </dd>
-              <dt>Year filtering</dt>
-              <dd>
-                The final source year ({data.excludedYear}) is incomplete and
-                excluded from displayed timelines and publication counts. The
-                displayed period ends in {data.years.at(-1)}. Collaboration
-                dates use publication year. Citation connections use the citing
-                paper’s year and are displayed without direction. The ten main
-                communities are fixed across time. Subcommunity summaries retain
-                their original, all-time scope. Evolution shows corpus-level
-                citation data: community shares use the corpus as their
-                denominator, and subcluster shares use the parent community.
-                Institution and search filters do not change these historical
-                shares.
-              </dd>
-              <dt>Community relationships</dt>
-              <dd>
-                Widths follow the previous size-adjusted measure: log(1 +
-                citations) divided by (community A size × community B
-                size)^0.35. The original normalization and 3.5-power contrast
-                are retained. Fixed node positions use all-time affinity; year
-                filters reduce edge strength against that same reference.
+                Discover the main research areas and how they connect. Select an
+                area to explore its institutions and topics.
               </dd>
               <dt>Geography</dt>
               <dd>
-                Original map coordinates and institution name normalization are
-                preserved, including existing address ambiguity. Location
-                identifies the source’s institution coordinate, not every
-                campus.
+                Find where robotics research happens. Zoom into the map to
+                explore institutions and their collaborations around the world.
               </dd>
-              <dt>Edge visibility</dt>
+              <dt>Collaborations</dt>
               <dd>
-                Both institution views display the same strongest edges, after
-                applying the paper threshold and display limit. All qualifying
-                connections of the selected institution are retained beyond the
-                display limit. Counts report all eligible edges. An institution
-                selection highlights it; enable “Only this institution’s
-                connections” to filter its neighborhood.
+                See who publishes together. Select an institution to discover
+                its research partners and explore their connections.
               </dd>
-              <dt>Rendering</dt>
+              <dt>Evolution</dt>
               <dd>
-                Helios Web 0.10.9 / Helios Network 0.10.4. Static force layout
-                computed offline; software graphics use a canvas fallback. Data
-                filtering runs in a worker. Filter computation:{" "}
-                {result.ms.toFixed(1)} ms (latest request).
+                Follow how research areas grow and change over time. Select a
+                community to take a closer look at the topics within it.
+              </dd>
+              <dt>Get started</dt>
+              <dd>
+                Choose a view, select a research area, or search for an
+                institution or place. Click an institution to see its research
+                profile. Drag across a timeline to choose years; double-click
+                to return to the full period.
+              </dd>
+              <dt>Focus on connections</dt>
+              <dd>
+                Select an institution and turn on “Only this institution’s
+                connections” to explore its partners. Use “Shared papers” and
+                “Show” to adjust which links appear.
               </dd>
             </dl>
-            <a
-              href="https://heliosweb.io/docs/"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Helios documentation ↗
-            </a>
+            <p>
+              Network visualization powered by{" "}
+              <a
+                href="https://heliosweb.io/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Helios Web ↗
+              </a>
+            </p>
           </section>
         </div>
       )}

@@ -57,7 +57,7 @@ Counts are stored as sparse `[publicationYear, communityIndex, distinctPaperCoun
 | Robotics | 243,097 | 243,097 | 233,655 | 34,633 | 122,721 |
 | Humanoid | 7,432 | 7,311 | 6,818 | 2,432 | 5,611 |
 
-Citation connections use the citing paper's publication year and aggregate each pair without direction. The original community assignments remain fixed over time. Collaboration pairs are limited to pairs present in the original map network. Institution identities and coordinates use the original normalization and geocoding; existing address/campus ambiguity is retained. These constraints also appear in the app's data notes.
+Citation connections use the citing paper's publication year and aggregate each pair without direction. The original community assignments remain fixed over time. Collaboration pairs are limited to pairs present in the original map network. Institution identities and coordinates use the original normalization and geocoding; existing address/campus ambiguity is retained. The app's info panel provides a visitor guide, with dataset totals for the displayed period, an introduction to the four views, and tips for exploring.
 
 The geographic basemap is the Natural Earth 1:110m country dataset, distributed by `world-atlas` 2.0.2. It is local (`public/data/world.json`), so map geometry requires no external tiles or API keys. Fonts use Google Fonts with system-font fallbacks.
 
